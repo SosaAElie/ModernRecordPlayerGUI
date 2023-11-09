@@ -22,39 +22,93 @@ function main(){
 		user:"easosa",
 	})
 	client.connect()
-	app.whenReady().then(()=>{
-		ipcMain.handle("search:artist",getSpotifyArtist)
-		createWindow()
-		ipcMain.handle("search:album", getArtistAlbums)
-		ipcMain.handle("scan", (event, args)=>{
-			let flag = false;
-			let uid;
-			let count = 0
-			while(!flag && count != 1000){
-				//mfrc522.reset()
-				count++;
-				//let mfrc522O = mfrc522.findCard();
-				//flag = mfrc522O.status;
-				if (flag){
-					//uid = uidToNum(mfrc522.getUid().data)
-					isRfidUriPresent(client, uid)
-						.then(rows =>{
-							console.log(rows.length)
-							if (rows.length < 1) addRfidUri(client, uid, args)
-							else updateRfidUri(client, uid, args)
-						})
-					//console.log(args, uid)
-				}
-			}
-			if (count == 1000) console.log("timed out")
-		})
-		
-	});
-	//getSpotifyArtist("Joji")
+	app.whenReady().then(mainProcess);
 }
 
-function isRfidUriPresent(client, id){
+function mainProcess(){
 	
+	const mainWindow = new BrowserWindow({
+		width: 800,
+    	height: 600,
+		webPreferences: {
+			contextIsolation: true,
+      		preload: path.join(__dirname, 'preload.js')
+    		},
+	});
+
+	
+	mainWindow.loadFile("index.html");
+	ipcMain.handle("search:artist",getSpotifyArtist)
+	ipcMain.handle("search:album", getArtistAlbums)
+	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow))
+}
+
+function scan(event, args, mainWindow){
+	let flag = false;
+	let uid;
+	let count = 0
+	const scannerPopUp = new BrowserWindow({
+		parent:mainWindow,
+		modal:true,
+		show:false,
+		width:400,
+		height:300,
+		titleBarOverlay:true,
+		webPreferences: {
+			contextIsolation: true,
+    		},
+	})
+	scannerPopUp.loadFile("popup.html")
+	scannerPopUp.once("ready-to-show", ()=>scannerPopUp.show())
+	const scanningInterval = setInterval( scanningFunction, 500)
+
+	/*
+		Problem: 
+			How do I cancel the intervalled function when the user has scanned their RFID chip?
+
+		My Solution:
+			Create a function, not a callback function, within the same scope as the setInterval function call,
+			get the intervalID that is returned by the setInterval function and
+			access it within the function body of the soon to be intervalled function.
+
+			Scan for rfid chips and create a conditional statement that when one is found,
+			the clearInterval function is called accessing the intervalID of the setInterval function
+			defined in the outer scope.
+	*/
+
+
+	function scanningFunction(){
+		console.log("Scanning")
+		let flag = false
+		for(let i = 0; i < 3; i++) if (i == 2) flag = true
+		if(flag){
+			console.log("Canceling Scanner")
+			clearInterval(scanningInterval)
+			console.log("intervalled function cancelled")
+			scannerPopUp.close()
+		}
+	}
+
+	// while(!flag && count != 1000){
+	// 	//mfrc522.reset()
+	// 	count++;
+	// 	//let mfrc522O = mfrc522.findCard();
+	// 	//flag = mfrc522O.status;
+	// 	if (flag){
+	// 		//uid = uidToNum(mfrc522.getUid().data)
+	// 		isRfidUriPresent(client, uid)
+	// 			.then(rows =>{
+	// 				console.log(rows.length)
+	// 				if (rows.length < 1) addRfidUri(client, uid, args)
+	// 				else updateRfidUri(client, uid, args)
+	// 			})
+	// 	}
+	// }
+	// if (count == 1000) console.log("timed out")
+}
+
+
+function isRfidUriPresent(client, id){	
 	return client.query(`SELECT id FROM rfiduri WHERE id = '${id}'`)
 			.then(res => res.rows)	
 }
@@ -71,8 +125,6 @@ function updateRfidUri(client, id, uri){
 	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uri}' WHERE id = '${id}'`)
 }
 
-
-
 function uidToNum(uid){
 	//Same uid 5 byte conversion as MFRC522 library for python
 	let n = 0;
@@ -82,29 +134,14 @@ function uidToNum(uid){
 	return n
 }
 
-function createWindow(){
-	//creates an instance of the browser window with the specified html file
-	const windowSpecifications = {
-		width: 800,
-    		height: 600,
-		webPreferences: {
-			contextIsolation: true,
-      		preload: path.join(__dirname, 'preload.js')
-    		},
-	};
-	
-	const win = new BrowserWindow(windowSpecifications);
-	win.loadFile('index.html');
-}
-
-
 function getSpotifyArtist(event, artistName){
 	//Takes in the name of the spotify artist and returns an object with the artist name being the property and a list containing the ID and the img URI as the value
 	//console.log(artistName)
 	const endpoint = new URL("https://api.spotify.com/v1/search");
 	const headers = {
 		"Authorization":`Bearer ${getToken()}`,
-	};
+	}
+	
 	endpoint.searchParams.append("q",artistName);
 	endpoint.searchParams.append("type",["artist"]);
 	const requestType = {
@@ -122,7 +159,7 @@ function getSpotifyArtist(event, artistName){
 					artists[counter++] = [item.name, item.id, item["images"][0]["url"]]
 				} catch (TypeError){
 					//console.log(item)
-					artists[counter++] = [item.name, item.id, "No Image"]
+					artists[counter++] = [item.name, item.id, "defaultArtistImage.png"]
 				}	
 				}
 			return(artists)
@@ -132,14 +169,9 @@ function getSpotifyArtist(event, artistName){
 
 }
 
-
 function getArtistAlbums(event, spotifyURI){
 	const endpoint = new URL(`https://api.spotify.com/v1/artists/${spotifyURI}/albums`)
-	//response = requests.get(endpoint, params = {"include_groups":"album"}, headers = {"Authorization":f"Bearer {get_token()}"})
-	
-	//for item in response.json()["items"]:
-	//	albums[item["name"]] = item["uri"]
-	
+
 	const headers = {
 		"Authorization":`Bearer ${getToken()}`,
 	};
