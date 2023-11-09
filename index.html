@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Hello, world!</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<style>
+		body{
+			background-color:beige;
+		}
+		#search-form{
+			display:flex;
+			justify-content:center;
+			gap:5%;
+		}
+		#card-container{
+			display:grid;
+			grid-template-columns: auto auto auto;
+			gap:10px;
+			
+			
+		}
+		.card{
+			display:flex;
+			flex-direction:column;
+			border-style:solid;
+			border-radius:10%;
+		}
+		.card>img{
+			height:200px;
+			border-radius:10%
+		}
+	</style>
+</head>
+<body>
+	<form id = "search-form"> 
+		<label>Arist Name</label>
+		<input type = "text">	
+		<button type = "submit" id="search-button">Search</button>
+	</form>
+	<div id = "card-container"></div>
+	<script async defer>
+		const button = document.getElementById("search-button")
+		const container = document.getElementById("card-container")
+		
+		button.addEventListener("click", (event)=>{
+			event.preventDefault();
+			const artist = event.target.previousElementSibling.value
+			//console.log(artist)
+			window.electronAPI.sendArtist(artist).then(res=>{
+				//console.log(res);
+				renderArtists(res);
+			}
+		)})
+		
+		function renderArtists(artistsObj){
+			container.innerHTML = "";
+			for (const [key, value] of Object.entries(artistsObj)){
+  				const [name, id, src] = value;
+				container.appendChild(artistCard(name, id, src));
+			}
+		}
+		
+		function renderAlbums(albumObj){
+			container.innerHTML = "";
+			for (const [key, value] of Object.entries(albumObj)){
+  				const [spotifyURI, src] = value;
+				container.appendChild(albumCard(spotifyURI, src));
+			}
+		}
+		
+		function artistCard(name, id, src){
+			const card = document.createElement("div");
+			card.className = "card";
+			const img = document.createElement("img");
+			img.src = src;
+			const nameE = document.createElement("h2");
+			nameE.textContent = name;
+			card.id = id;
+			card.appendChild(nameE);
+			card.appendChild(img);
+			card.addEventListener("click", sendArtistID)
+			return card;
+			
+		}
+		
+		function albumCard(spotifyURI, src){
+			const card = document.createElement("div");
+			card.className = "card";
+			const img = document.createElement("img");
+			img.src = src;
+			card.id = spotifyURI;
+			card.appendChild(img);
+			card.addEventListener("click", startRFID)
+			return card;
+		}
+		
+		function sendArtistID(){
+			window.electronAPI.sendArtistID(this.id)
+					.then(res=>{
+						
+						renderAlbums(res)
+					})
+		} 
+		
+		function startRFID(){
+			alert("Scan After Click OK")
+			window.electronAPI.scan(this.id)
+			//console.log(this.id)
+		}
+		
+	</script>
+</body>
+</html>
