@@ -39,7 +39,7 @@ function mainProcess(){
 	
 	mainWindow.loadFile("index.html");
 	ipcMain.handle("search:artist",getSpotifyArtist)
-	ipcMain.handle("search:album", getArtistAlbums)
+	ipcMain.handle("search:album", (event, args)=>getArtistAlbums(event, args, mainWindow))
 	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow))
 }
 
@@ -169,8 +169,10 @@ function getSpotifyArtist(event, artistName){
 
 }
 
-function getArtistAlbums(event, spotifyURI){
-	const endpoint = new URL(`https://api.spotify.com/v1/artists/${spotifyURI}/albums`)
+function getArtistAlbums(event, id, mainWindow){
+	mainWindow.loadFile("albums.html")
+	console.log(id)
+	const endpoint = new URL(`https://api.spotify.com/v1/artists/${id}/albums`)
 
 	const headers = {
 		"Authorization":`Bearer ${getToken()}`,
@@ -181,7 +183,7 @@ function getArtistAlbums(event, spotifyURI){
 		headers:headers,
 	};
 	
-	return fetch(endpoint, requestType)
+	fetch(endpoint, requestType)
 		.then(response => response.json())
 		.then(data => { 
 			const albums = {}
@@ -193,7 +195,8 @@ function getArtistAlbums(event, spotifyURI){
 					albums[counter++] = [item.uri, "No Image"]
 				}
 			}
-			return albums
+			mainWindow.webContents.send("albums:data",albums)
+			mainWindow.webContents.openDevTools()
 			})
 }
 
