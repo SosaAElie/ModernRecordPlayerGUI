@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const fs = require("fs");
+const dotenv = require("dotenv").config()
 
 const SpotifyWrapper = {
 
@@ -74,9 +75,8 @@ const SpotifyWrapper = {
 
 const tokenStorage = {
     cachedToken: {},
-    clientId: "5f9308fd6c4a4848b4d8850ef398b176",
-    clientSecret: "cbabac7e271943a188688e6d3d266dd4",
-
+    clientId:process.env.CLIENT_ID,
+    clientSecret:process.env.CLIENT_SECRET,
 
     getNewToken() {
         // Accesses the spotify API to get a new oAuthv2 token
@@ -84,6 +84,7 @@ const tokenStorage = {
         const headers = {
             "Content-Type": "application/x-www-form-urlencoded",
         };
+
         endpoint.searchParams.append("grant_type", "client_credentials");
         endpoint.searchParams.append("client_id", this.clientId);
         endpoint.searchParams.append("client_secret", this.clientSecret);

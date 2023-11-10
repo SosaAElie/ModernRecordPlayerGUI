@@ -7,6 +7,7 @@ const fetch = require("node-fetch")
 const pg = require("pg")
 const {SpotifyWrapper} = require("./SpotifyModule")
 
+
 function main() {
 	// const softSPI = new SoftSPI({
 	// 			clock: 23, // pin number of SCLK
