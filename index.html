@@ -39,13 +39,15 @@
 	</form>
 	<div id = "card-container"></div>
 	<script async defer>
-		const button = document.getElementById("search-button")
-		const container = document.getElementById("card-container")
+		const searchForm = document.getElementById("search-form");
+		const container = document.getElementById("card-container");
 		
-		button.addEventListener("click", (event)=>{
+
+
+		searchForm.addEventListener("submit", (event)=>{
 			event.preventDefault();
-			const artist = event.target.previousElementSibling.value
-			//console.log(artist)
+			const artist = event.target[0].value;
+			console.log(artist)
 			window.electronAPI.sendArtist(artist).then(res=>{
 				//console.log(res);
 				renderArtists(res);
@@ -101,6 +103,10 @@
 						renderAlbums(res)
 					})
 		} 
+
+		window.electronAPI.handleArtists((event, artists)=>{
+			renderArtists(artists)
+		})
 		
 		function startRFID(){
 			//alert("Scan After Click OK")

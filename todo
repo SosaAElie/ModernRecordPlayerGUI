@@ -1,0 +1,9 @@
+11/09/2023
+
+1. Clean up code before adding more or else the code will become messier than it already is and making
+changes/updates will become more tedious.
+
+2. Use the spotify API to search the tracks in the album chosen at the bottom of the albums.html file.
+
+3. Make it such that when the user searches another artist from the albums.html page the renderer switches
+back to the index.html page.

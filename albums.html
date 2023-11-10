@@ -1,98 +1,120 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Albums</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body{
-                background-color: #aa6f73;
-                font-family: 'Courier New', Courier, monospace;
-                color: black;
-            }
-            #album-image>img{
-                height: 300px;
-            }
-            #album-body{
-                display: grid;
-                grid-template-columns: 1 1 1;
-                grid-template-rows: 1 1 1;
-                gap: 10%;
-            }
-            #artist-search{
-                grid-column: span 3;
-                justify-self: center;
-                
-            }
-            #artist-search>input{
-                border-radius: 5%;
-                background-color: #aa6f73;
-            }
-            #artist-albums{
-                grid-column: span 3;
-                overflow-x: scroll;
-            }
-            #artist-albums::-webkit-scrollbar{
-                display: none;
-            }
-            #albums{
-                display: flex;
-                gap: 10px;
-                list-style: none;
-            }
-            li>img{
-                height: 150px;
-            }
-        </style>
-    </head>
-    <body>
-        <div id = album-body>
-            <form id = "artist-search">
-                <label>Artist</label>
-                <input type = "text" required>
-            </form>
-            <div id = "album-image"></div>
-            <div id = "album-description">
-                <h2>Album Description</h2>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti pariatur ullam assumenda! Incidunt neque, beatae consectetur debitis veritatis consequatur quaerat totam aspernatur sequi, unde error odit eligendi quisquam temporibus quia.</p>
-            </div>
-            <div id = "album-tracks">
-                <h2>Album Tracks</h2>
-                <ul id = "track-list">
-                    <li>Track 1</li>
-                    <li>Track 2</li>
-                    <li>Track 3</li>
-                    <li>Track 4</li>
-                    <li>Track 5</li>
-                    <li>Track 6</li>
-                </ul>
-            </div>
-            <div id = "artist-albums">
-                <ul id = "albums"></ul>
-            </div>
+
+<head>
+    <meta charset="utf-8">
+    <title>Albums</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: #aa6f73;
+            font-family: 'Courier New', Courier, monospace;
+            color: black;
+        }
+
+        #album-image>img {
+            height: 300px;
+        }
+
+        #album-body {
+            display: grid;
+            grid-template-columns: 1 1 1;
+            grid-template-rows: 1 1 1;
+            gap: 10%;
+        }
+
+        #artist-search {
+            grid-column: span 3;
+            justify-self: center;
+
+        }
+
+        #artist-search>input {
+            border-radius: 5%;
+            background-color: #aa6f73;
+        }
+
+        #artist-albums {
+            grid-column: span 3;
+            overflow-x: scroll;
+        }
+
+        #artist-albums::-webkit-scrollbar {
+            display: none;
+        }
+
+        #albums {
+            display: flex;
+            gap: 10px;
+            list-style: none;
+        }
+
+        li>img {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id=album-body>
+        <form id="artist-search">
+            <label>Artist</label>
+            <input type="text" required>
+        </form>
+        <div id="album-image"></div>
+        <div id="album-description">
+            <h2>Album Description</h2>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti pariatur ullam assumenda! Incidunt
+                neque, beatae consectetur debitis veritatis consequatur quaerat totam aspernatur sequi, unde error odit
+                eligendi quisquam temporibus quia.</p>
         </div>
-        <script async defer>
-            const artistAlbums = document.getElementById("albums");
-            const focusAlbum = document.getElementById("album-image")
-            window.electronAPI.handleAlbums((event, data)=>{
+        <div id="album-tracks">
+            <h2>Album Tracks</h2>
+            <ul id="track-list">
+                <li>Track 1</li>
+                <li>Track 2</li>
+                <li>Track 3</li>
+                <li>Track 4</li>
+                <li>Track 5</li>
+                <li>Track 6</li>
+            </ul>
+        </div>
+        <div id="artist-albums">
+            <ul id="albums"></ul>
+        </div>
+    </div>
+    <script async defer>
+        const artistAlbums = document.getElementById("albums");
+        const focusAlbum = document.getElementById("album-image");
+        const artistSearch = document.getElementById("artist-search");
 
-                const focusImg = document.createElement("img");
-                const firstAlbumURI = data["0"][0];
-                const firstAlbumSrc = data["0"][1];
-                focusImg.id = firstAlbumURI;
-                focusImg.src = firstAlbumSrc;
-                focusAlbum.appendChild(focusImg);
+        window.electronAPI.handleAlbums((event, data) => {
 
-                for(let album of Object.values(data)){
-                    const li = document.createElement("li");
-                    const img = document.createElement("img");
-                    img.id = album[0];
-                    img.src = album[1];
-                    li.appendChild(img);
-                    artistAlbums.appendChild(li);
-                }
+            const focusImg = document.createElement("img");
+            const firstAlbumURI = data["0"][0];
+            const firstAlbumSrc = data["0"][1];
+            focusImg.id = firstAlbumURI;
+            focusImg.src = firstAlbumSrc;
+            focusAlbum.appendChild(focusImg);
 
-            })
-        </script>
-    </body>
+            for (let album of Object.values(data)) {
+                const li = document.createElement("li");
+                const img = document.createElement("img");
+                img.id = album[0];
+                img.src = album[1];
+                li.appendChild(img);
+                artistAlbums.appendChild(li);
+            }
+
+        })
+
+        artistSearch.addEventListener("submit", event=>{
+            event.preventDefault();
+            const artistName = event.target[0].value;
+            console.log(artistName)
+            window.electronAPI.sendArtist(artistName);
+        })
+    </script>
+</body>
+
 </html>
