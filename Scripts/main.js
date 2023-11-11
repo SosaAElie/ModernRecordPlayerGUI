@@ -5,7 +5,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const fetch = require("node-fetch")
 const pg = require("pg")
-const {SpotifyWrapper} = require("./SpotifyModule")
+const {SpotifyWrapper} = require("../Scripts/SpotifyModule")
 
 
 function main() {
@@ -37,10 +37,12 @@ function mainProcess() {
 		},
 	});
 	
-	mainWindow.loadFile("index.html");
+	mainWindow.loadFile("./Pages/artists.html");
+	// mainWindow.webContents.openDevTools()
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getSpotifyArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
 	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow))
+	ipcMain.handle("album:tracks", (event, args)=> SpotifyWrapper.getAlbumTracks(event, args, mainWindow))
 }
 
 function scan(event, args, mainWindow) {
@@ -58,7 +60,7 @@ function scan(event, args, mainWindow) {
 			contextIsolation: true,
 		},
 	})
-	scannerPopUp.loadFile("popup.html")
+	scannerPopUp.loadFile("./Pages/popup.html")
 	scannerPopUp.once("ready-to-show", () => scannerPopUp.show())
 	const scanningInterval = setInterval(scanningFunction, 500)
 

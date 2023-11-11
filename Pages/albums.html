@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Albums</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FBEFEF;
+            font-family: 'Quicksand', sans-serif;
+            color: black;
+            white-space: wrap;
+        }
+
+        #album-image {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        #album-image>img{
+            height:300px;
+        }
+
+        #album-body {
+            display: grid;
+            grid-template-columns: 1 1 1;
+            grid-template-rows: 1 1 1;
+            gap: 5%;
+        }
+
+        #artist-search {
+            grid-column: span 3;
+            justify-self: center;
+
+        }
+
+        #artist-search>input {
+            border-radius: 5%;
+            background-color: #FBEFEF; 
+            border:1px solid black;
+        }
+
+        #artist-albums {
+            grid-column: span 3;
+            overflow-x: scroll;
+            display: flex;
+            gap: 10px;
+            list-style: none;
+        }
+
+        #artist-albums::-webkit-scrollbar {
+            display: none;
+        }
+        #artist-albums>img {
+            height: 150px;
+        }
+        #track-durations{
+            list-style: none;
+        }
+
+        #track-list{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        ol>li{
+            white-space: nowrap;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div id=album-body>
+        <form id="artist-search">
+            <label>Artist</label>
+            <input type="text"  id = "search"required>
+            <button id = "button">Search</button>
+        </form>
+        <div id="album-image"></div>
+        <div id="album-description">
+            <h2>Album Description</h2>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti pariatur ullam assumenda! Incidunt
+                neque, beatae consectetur debitis veritatis consequatur quaerat totam aspernatur sequi, unde error odit
+                eligendi quisquam temporibus quia.</p>
+        </div>
+        <div id="album-tracks">
+            <h2>Album Tracks</h2>
+            <div id = "track-list"><ol id = "track-names"></ol></div>
+            
+        </div>
+        <div id="artist-albums"></div>
+    </div>
+    <script async defer>
+        const artistAlbums = document.getElementById("artist-albums");
+        const focusAlbum = document.getElementById("album-image");
+        const artistSearch = document.getElementById("artist-search");
+        const trackNames = document.getElementById("track-names");
+        const button = document.getElementById("button");
+
+        window.electronAPI.handleAlbums((event, data) => {
+            focusAlbum.innerHTML = "";
+            artistAlbums.innerHTML = "";
+            trackNames.innerHTML = "";
+
+            const focusImg = document.createElement("img");
+            const firstAlbumURI = data["0"][0];
+            const firstAlbumSrc = data["0"][1];
+            const firstAlbumId = data["0"][2];
+            focusImg.uri = firstAlbumURI;
+            focusImg.src = firstAlbumSrc;
+            focusImg.id = firstAlbumId;
+            focusAlbum.appendChild(focusImg);
+            window.electronAPI.getAlbumTracks(firstAlbumId)
+                .then(tracks=>{
+                    for(let track of Object.values(tracks)){
+                        const trackName = document.createElement("li");
+                        trackName.textContent = track[0];
+                        trackNames.appendChild(trackName);
+                    }
+                    
+                })
+            
+            for (let album of Object.values(data)) {
+                
+                const img = document.createElement("img");
+                img.uri = album[0];
+                img.src = album[1];
+                img.id = album[2]
+                
+                //img.addEventListener("click", sendAlbumId)
+                
+                artistAlbums.appendChild(img);
+            }
+
+        })
+
+        artistSearch.addEventListener("submit", event=>{
+            event.preventDefault();
+            const artistName = event.target[0].value;
+            window.electronAPI.sendArtist(artistName);
+            window.location = "artists.html"
+        })
+    </script>
+</body>
+
+</html>

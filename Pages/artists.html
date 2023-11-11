@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-	<title>Hello, world!</title>
+	<title>Artists</title>
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 	<style>
 		body{
@@ -16,24 +16,27 @@
 		#card-container{
 			display:grid;
 			grid-template-columns: auto auto auto;
-			gap:10px;
-	
+			grid-auto-rows: auto;
+			row-gap: 1%;
 		}
 		.card{
 			display:flex;
 			flex-direction:column;
 			border-style:solid;
 			border-radius:10%;
+			height: fit-content;
+			width: 200px;
 		}
 		.card>img{
 			height:200px;
+			width: inherit;
 			border-radius:10%
 		}
 	</style>
 </head>
 <body>
 	<form id = "search-form"> 
-		<label>Arist Name</label>
+		<label>Artist Name</label>
 		<input type = "text">	
 		<button type = "submit" id="search-button">Search</button>
 	</form>
@@ -41,7 +44,7 @@
 	<script async defer>
 		const searchForm = document.getElementById("search-form");
 		const container = document.getElementById("card-container");
-		
+		container.innerHTML = "";
 
 
 		searchForm.addEventListener("submit", (event)=>{
@@ -49,7 +52,7 @@
 			const artist = event.target[0].value;
 			console.log(artist)
 			window.electronAPI.sendArtist(artist).then(res=>{
-				//console.log(res);
+
 				renderArtists(res);
 			}
 		)})
@@ -75,6 +78,7 @@
 			card.className = "card";
 			const img = document.createElement("img");
 			img.src = src;
+			
 			const nameE = document.createElement("h2");
 			nameE.textContent = name;
 			card.id = id;
@@ -97,11 +101,9 @@
 		}
 		
 		function sendArtistID(){
-			window.electronAPI.sendArtistID(this.id)
-					.then(res=>{
-						
-						renderAlbums(res)
-					})
+			window.electronAPI.sendArtistID(this.id);
+			window.location = "albums.html";
+			
 		} 
 
 		window.electronAPI.handleArtists((event, artists)=>{
