@@ -4,6 +4,7 @@ const { webContents } = require("electron");
 const dotenv = require("dotenv").config()
 
 const SpotifyWrapper = {
+    cachedAlbumTracks:{},
 
     getSpotifyArtist(event, artistName, mainWindow) {
         //Takes in the name of the spotify artist and returns an object with the artist name being the property and a list containing the ID and the img URI as the value
@@ -67,19 +68,34 @@ const SpotifyWrapper = {
             .then(data => {
                 const albums = {}
                 let counter = 0
+                if(Object.entries(this.cachedAlbumTracks) !== 0) this.cachedAlbumTracks = {};
                 for (let item of data.items) {
-
-                    try {
-                        albums[counter++] = [item.uri, item["images"][0]["url"], item.id]
-                    } catch (TypeError) {
-                        albums[counter++] = [item.uri, "No Album Image", item.id]
+                    const albumUri = item.uri;
+                    const albumId = item.id;
+                    let albumImage = "No Album Image";
+                    try{
+                        albumImage = item["images"][0]["url"];
                     }
+                    catch(TypeError){
+                        continue;
+                    }
+                    albums[counter++] = [albumUri, albumImage, albumId]
+                    
+                    
+                    this.getAlbumTracks(null, albumId, null)
+                        .then(tracks=> this.cachedAlbumTracks[albumId] = tracks);
                 }
                 mainWindow.webContents.send("albums:data", albums);
             })
     },
 
     getAlbumTracks(event, id, mainWindow) {
+       
+        if(this.cachedAlbumTracks.hasOwnProperty(id)){
+            console.log("Accessing album cache")
+            return this.cachedAlbumTracks[id]
+        }
+
         const endpoint = new URL(`https://api.spotify.com/v1/albums/${id}/tracks`);
         const headers = {
             "Authorization": `Bearer ${tokenStorage.getToken()}`,

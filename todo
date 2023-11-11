@@ -1,9 +1,16 @@
 11/09/2023
 
 1. Clean up code before adding more or else the code will become messier than it already is and making
-changes/updates will become more tedious.
+changes/updates will become more tedious. -> Done 11/10/2023
 
 2. Use the spotify API to search the tracks in the album chosen at the bottom of the albums.html file.
+-> Done 11/10/2023
 
 3. Make it such that when the user searches another artist from the albums.html page the renderer switches
-back to the index.html page.
+back to the index.html page. -> Done 11/10/23
+
+4. Improve perfomance by reducing the amount of on demand API requests by making them sooner and storing the data in a cache.
+
+5. Improve Artist html page UI
+
+6. Integrate the RFID scanner and find a way to write the album URI to the chip instead of a sql database
