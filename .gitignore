@@ -1,3 +1,4 @@
 node_modules
 .env
 apitoken.csv
+.DS_Store
