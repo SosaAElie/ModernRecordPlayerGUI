@@ -3,7 +3,6 @@
 //const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
-const fetch = require("node-fetch")
 const pg = require("pg")
 const {SpotifyWrapper} = require("../Scripts/SpotifyModule")
 
