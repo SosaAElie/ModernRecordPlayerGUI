@@ -132,7 +132,7 @@
                 img.src = album[1];
                 img.id = album[2]
                 
-                //img.addEventListener("click", sendAlbumId)
+                img.addEventListener("click", renderAlbumInfo)
                 
                 artistAlbums.appendChild(img);
             }
@@ -145,6 +145,23 @@
             window.electronAPI.sendArtist(artistName);
             window.location = "artists.html"
         })
+
+        function renderAlbumInfo(){
+            focusAlbum.firstChild.src = this.src;
+            trackNames.innerHTML = "";
+            window.electronAPI.getAlbumTracks(this.id)
+                .then(tracks=>{
+                    
+                    for(let track of Object.values(tracks)){
+                        const trackName = document.createElement("li");
+                        trackName.textContent = track[0];
+                        trackNames.appendChild(trackName);
+                    }
+                })
+            
+            
+        
+        }
     </script>
 </body>
 

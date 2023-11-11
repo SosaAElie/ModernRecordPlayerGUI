@@ -16,13 +16,13 @@ function main() {
 	// 			client: 24 // pin number of CS
 	// 		});
 	//const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
-	const client = new pg.Client({
-		host: "localhost",
-		port: 5432,
-		database: "storage",
-		user: "easosa",
-	})
-	client.connect()
+	// const client = new pg.Client({
+	// 	host: "localhost",
+	// 	port: 5432,
+	// 	database: "storage",
+	// 	user: "easosa",
+	// })
+	// client.connect()
 	app.whenReady().then(mainProcess);
 }
 
