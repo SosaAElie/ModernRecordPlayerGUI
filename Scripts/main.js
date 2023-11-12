@@ -1,6 +1,6 @@
 "use strict";
-//const Mfrc522 = require("mfrc522-rpi");
-//const SoftSPI = require("rpi-softspi");
+const Mfrc522 = require("mfrc522-rpi");
+const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const pg = require("pg")
@@ -8,24 +8,26 @@ const {SpotifyWrapper} = require("../Scripts/SpotifyModule")
 
 
 function main() {
-	// const softSPI = new SoftSPI({
-	// 			clock: 23, // pin number of SCLK
-	// 			mosi: 19, // pin number of MOSI
-	// 			miso: 21, // pin number of MISO
-	// 			client: 24 // pin number of CS
-	// 		});
-	//const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
-	// const client = new pg.Client({
-	// 	host: "localhost",
-	// 	port: 5432,
-	// 	database: "storage",
-	// 	user: "easosa",
-	// })
-	// client.connect()
+
 	app.whenReady().then(mainProcess);
 }
 
 function mainProcess() {
+	const softSPI = new SoftSPI({
+		clock: 23, // pin number of SCLK
+		mosi: 19, // pin number of MOSI
+		miso: 21, // pin number of MISO
+		client: 24 // pin number of CS
+	});
+	const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
+
+	const client = new pg.Client({
+		host: "localhost",
+		port: 5432,
+		database: "storage",
+		user: "easosa",
+	})
+	client.connect()
 
 	const mainWindow = new BrowserWindow({
 		width: 800,
@@ -40,14 +42,12 @@ function mainProcess() {
 	// mainWindow.webContents.openDevTools()
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getSpotifyArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
-	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow))
+	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow, mfrc522))
 	ipcMain.handle("album:tracks", (event, args)=> SpotifyWrapper.getAlbumTracks(event, args, mainWindow))
 }
 
-function scan(event, args, mainWindow) {
-	let flag = false;
+function scan(event, args, mainWindow, mfrc522) {
 	let uid;
-	let count = 0
 	const scannerPopUp = new BrowserWindow({
 		parent: mainWindow,
 		modal: true,
@@ -59,10 +59,10 @@ function scan(event, args, mainWindow) {
 			contextIsolation: true,
 		},
 	})
-	scannerPopUp.loadFile("./Pages/popup.html")
-	scannerPopUp.once("ready-to-show", () => scannerPopUp.show())
-	const scanningInterval = setInterval(scanningFunction, 500)
-
+	scannerPopUp.loadFile("./Pages/popup.html");
+	scannerPopUp.once("ready-to-show", ()=>scannerPopUp.show());
+	const scanningInterval = setInterval(()=>scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522), 500)
+	
 	/*
 		Problem: 
 			How do I cancel the intervalled function when the user has scanned their RFID chip?
@@ -78,34 +78,23 @@ function scan(event, args, mainWindow) {
 	*/
 
 
-	function scanningFunction() {
-		console.log("Scanning")
-		let flag = false
-		for (let i = 0; i < 3; i++) if (i == 2) flag = true
-		if (flag) {
-			console.log("Canceling Scanner")
-			clearInterval(scanningInterval)
-			console.log("intervalled function cancelled")
-			scannerPopUp.close()
+	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522) {
+		mfrc522.reset();
+		const chip = mfrc522.findCard();
+		if(chip.status){
+			clearInterval(scanningInterval);
+			mainWindow.webContents.send(true);
+			scannerPopUp.close();
+			uid = uidToNum(chip.getUid().data)
+			isRfidUriPresent(client, uid)
+				.then(rows =>{
+					
+					if (rows.length < 1) addRfidUri(client, uid, args)
+					else updateRfidUri(client, uid, args)
+				})
 		}
-	}
 
-	// while(!flag && count != 1000){
-	// 	//mfrc522.reset()
-	// 	count++;
-	// 	//let mfrc522O = mfrc522.findCard();
-	// 	//flag = mfrc522O.status;
-	// 	if (flag){
-	// 		//uid = uidToNum(mfrc522.getUid().data)
-	// 		isRfidUriPresent(client, uid)
-	// 			.then(rows =>{
-	// 				console.log(rows.length)
-	// 				if (rows.length < 1) addRfidUri(client, uid, args)
-	// 				else updateRfidUri(client, uid, args)
-	// 			})
-	// 	}
-	// }
-	// if (count == 1000) console.log("timed out")
+	}
 }
 
 //Functions used to interact with the postgreSQL database

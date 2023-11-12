@@ -93,7 +93,7 @@
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti pariatur ullam assumenda! Incidunt
                 neque, beatae consectetur debitis veritatis consequatur quaerat totam aspernatur sequi, unde error odit
                 eligendi quisquam temporibus quia.</p>
-                <button>Click me to start scanning</button>
+                <button id = "scan-button">Click me to start scanning</button>
         </div>
         <div id="album-tracks">
             <h2>Album Tracks</h2>
@@ -107,7 +107,7 @@
         const focusAlbum = document.getElementById("album-image");
         const artistSearch = document.getElementById("artist-search");
         const trackNames = document.getElementById("track-names");
-        const button = document.getElementById("button");
+        const scanButton = document.getElementById("scan-button");
 
         window.electronAPI.handleAlbums((event, data) => {
             focusAlbum.innerHTML = "";
@@ -158,7 +158,6 @@
             trackNames.innerHTML = "";
             window.electronAPI.getAlbumTracks(this.id)
                 .then(tracks=>{
-                    
                     for(let track of Object.values(tracks)){
                         const trackName = document.createElement("li");
                         trackName.textContent = track[0];
@@ -169,6 +168,18 @@
             
         
         }
+        
+        scanButton.addEventListener("click", event=>{
+            event.preventDefault();
+            window.electronAPI.startScan(focusAlbum.id);
+        })
+
+        // window.electronAPI.handleScan((event, args)=>{
+        //     if(args === true){
+        //         con
+        //     }
+        // })
+
     </script>
 </body>
 

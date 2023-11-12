@@ -79,8 +79,8 @@ const SpotifyWrapper = {
                     catch(TypeError){
                         continue;
                     }
-                    albums[counter++] = [albumUri, albumImage, albumId]
                     
+                    albums[counter++] = [albumUri, albumImage, albumId]
                     
                     this.getAlbumTracks(null, albumId, null)
                         .then(tracks=> this.cachedAlbumTracks[albumId] = tracks);
