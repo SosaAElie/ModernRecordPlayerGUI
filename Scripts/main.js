@@ -45,7 +45,7 @@ function mainProcess() {
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getSpotifyArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
 	ipcMain.handle("scan", (event, args) => {
-		intervalId = scan(event, args, mainWindow, mfrc522)
+		intervalId = scan(event, args, mainWindow, mfrc522, client)
 	})
 	ipcMain.handle("cancel:scan", ()=>{
 		console.log("Cancelling scan");
@@ -54,7 +54,7 @@ function mainProcess() {
 	ipcMain.handle("album:tracks", (event, args)=> SpotifyWrapper.getAlbumTracks(event, args, mainWindow))
 }
 
-function scan(event, args, mainWindow, mfrc522) {
+function scan(event, args, mainWindow, mfrc522, client) {
 	let uid;
 	const scannerPopUp = new BrowserWindow({
 		parent: mainWindow,
@@ -70,7 +70,7 @@ function scan(event, args, mainWindow, mfrc522) {
 	})
 	scannerPopUp.loadFile("./Pages/popup.html");
 	scannerPopUp.once("ready-to-show", ()=>scannerPopUp.show());
-	const intervalId = setInterval(scanningFunction, 500, event, args, mainWindow, scannerPopUp, mfrc522)
+	const intervalId = setInterval(scanningFunction, 500, event, args, mainWindow, scannerPopUp, mfrc522, client)
 	/*
 		Problem: 
 			How do I cancel the intervalled function when the user has scanned their RFID chip?
@@ -86,7 +86,7 @@ function scan(event, args, mainWindow, mfrc522) {
 	*/
 
 
-	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522) {
+	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522, client) {
 		console.log("Scanning")
 		console.log(mfrc522)
 		mfrc522.reset();
