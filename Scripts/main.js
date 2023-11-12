@@ -79,6 +79,7 @@ function scan(event, args, mainWindow, mfrc522) {
 
 
 	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522) {
+		console.log("Scanning")
 		mfrc522.reset();
 		const chip = mfrc522.findCard();
 		if(chip.status){
