@@ -97,7 +97,7 @@ function scan(event, args, mainWindow, mfrc522) {
 		console.log("scanned chip")
 		clearInterval(intervalId);
 		mainWindow.webContents.send("handle:scan", true);
-		uid = uidToNum(chip.getUid().data)
+		uid = uidToNum(mfrc522.getUid().data)
 		isRfidUriPresent(client, uid)
 			.then(rows =>{
 				if (rows.length < 1) addRfidUri(client, uid, args)
