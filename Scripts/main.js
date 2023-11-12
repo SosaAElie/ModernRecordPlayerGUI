@@ -4,7 +4,8 @@ const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const pg = require("pg")
-const {SpotifyWrapper} = require("../Scripts/SpotifyModule")
+const {SpotifyWrapper} = require("../Scripts/SpotifyModule");
+const { clearInterval } = require("timers");
 
 
 function main() {
@@ -40,9 +41,14 @@ function mainProcess() {
 	
 	mainWindow.loadFile("./Pages/artists.html");
 	// mainWindow.webContents.openDevTools()
+	let intervalId;
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getSpotifyArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
-	ipcMain.handle("scan", (event, args) => scan(event, args, mainWindow, mfrc522))
+	ipcMain.handle("scan", (event, args) => {intervalId = scan(event, args, mainWindow, mfrc522)})
+	ipcMain.handle("cancel:scan", ()=>{
+		console.log("Cancelling scan");
+		clearInterval(intervalId);
+	})
 	ipcMain.handle("album:tracks", (event, args)=> SpotifyWrapper.getAlbumTracks(event, args, mainWindow))
 }
 
@@ -61,8 +67,7 @@ function scan(event, args, mainWindow, mfrc522) {
 	})
 	scannerPopUp.loadFile("./Pages/popup.html");
 	scannerPopUp.once("ready-to-show", ()=>scannerPopUp.show());
-	const scanningInterval = setInterval(()=>scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522), 500)
-	
+	const intervalId = setInterval(()=>scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522), 500)
 	/*
 		Problem: 
 			How do I cancel the intervalled function when the user has scanned their RFID chip?
@@ -83,7 +88,7 @@ function scan(event, args, mainWindow, mfrc522) {
 		mfrc522.reset();
 		const chip = mfrc522.findCard();
 		if(chip.status){
-			clearInterval(scanningInterval);
+			clearInterval(intervalId);
 			mainWindow.webContents.send(true);
 			scannerPopUp.close();
 			uid = uidToNum(chip.getUid().data)
@@ -95,6 +100,7 @@ function scan(event, args, mainWindow, mfrc522) {
 				})
 		}
 
+		return intervalId;
 	}
 }
 
