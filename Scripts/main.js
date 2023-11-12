@@ -96,15 +96,14 @@ function scan(event, args, mainWindow, mfrc522) {
 		
 		console.log("scanned chip")
 		clearInterval(intervalId);
-		mainWindow.webContents.send(true);
-		scannerPopUp.close();
+		mainWindow.webContents.send("handle:scan", true);
 		uid = uidToNum(chip.getUid().data)
 		isRfidUriPresent(client, uid)
 			.then(rows =>{
 				if (rows.length < 1) addRfidUri(client, uid, args)
 				else updateRfidUri(client, uid, args)
 			})
-	
+		scannerPopUp.close();
 
 		
 	}

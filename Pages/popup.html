@@ -36,13 +36,17 @@
             <button id = "close">Stop Scanning</button>
             <h1>Scan your RFID Chip</h1>
 
-            <img src = "https://media4.giphy.com/media/3S59TcvgxZK8kA45mu/giphy.gif">
+            <img id = "image"src = "https://media4.giphy.com/media/3S59TcvgxZK8kA45mu/giphy.gif">
         </div>
         <script async defer>
             const closeButton = document.getElementById("close");
+            const image = document.getElementById("image");
             closeButton.addEventListener("click", ()=>{
                 window.electronAPI.cancelScan();
                 this.close();
+            })
+            window.electronAPI.handleScan((event, success)=>{
+                if(success)image.src = "Images/successScan.png";
             })
         </script>
     </body>
