@@ -73,7 +73,6 @@ function scan(event, args, mainWindow, mfrc522) {
 	scannerPopUp.loadFile("./Pages/popup.html");
 	scannerPopUp.once("ready-to-show", ()=>scannerPopUp.show());
 	const intervalId = setInterval(scanningFunction, 500, event, args, mainWindow, scannerPopUp, mfrc522)
-	console.log(intervalId)
 	/*
 		Problem: 
 			How do I cancel the intervalled function when the user has scanned their RFID chip?
@@ -106,8 +105,9 @@ function scan(event, args, mainWindow, mfrc522) {
 				})
 		}
 
-		return intervalId;
+		
 	}
+	return intervalId;
 }
 
 //Functions used to interact with the postgreSQL database
