@@ -46,11 +46,9 @@ function mainProcess() {
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
 	ipcMain.handle("scan", (event, args) => {
 		intervalId = scan(event, args, mainWindow, mfrc522)
-		console.log(intervalId)
 	})
 	ipcMain.handle("cancel:scan", ()=>{
 		console.log("Cancelling scan");
-		console.log(intervalId);
 		clearInterval(intervalId);
 	})
 	ipcMain.handle("album:tracks", (event, args)=> SpotifyWrapper.getAlbumTracks(event, args, mainWindow))
@@ -90,20 +88,23 @@ function scan(event, args, mainWindow, mfrc522) {
 
 	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522) {
 		console.log("Scanning")
+		console.log(mfrc522)
 		mfrc522.reset();
+		
 		const chip = mfrc522.findCard();
-		if(chip.status){
-			clearInterval(intervalId);
-			mainWindow.webContents.send(true);
-			scannerPopUp.close();
-			uid = uidToNum(chip.getUid().data)
-			isRfidUriPresent(client, uid)
-				.then(rows =>{
-					
-					if (rows.length < 1) addRfidUri(client, uid, args)
-					else updateRfidUri(client, uid, args)
-				})
-		}
+		if(!chip.status) return;
+		
+		console.log("scanned chip")
+		clearInterval(intervalId);
+		mainWindow.webContents.send(true);
+		scannerPopUp.close();
+		uid = uidToNum(chip.getUid().data)
+		isRfidUriPresent(client, uid)
+			.then(rows =>{
+				if (rows.length < 1) addRfidUri(client, uid, args)
+				else updateRfidUri(client, uid, args)
+			})
+	
 
 		
 	}
