@@ -1,16 +1,26 @@
 11/09/2023
 
 1. Clean up code before adding more or else the code will become messier than it already is and making
-changes/updates will become more tedious. -> Done 11/10/2023
+changes/updates will become more tedious. -> Done 11/10/23
 
 2. Use the spotify API to search the tracks in the album chosen at the bottom of the albums.html file.
--> Done 11/10/2023
+-> Done 11/10/23
 
 3. Make it such that when the user searches another artist from the albums.html page the renderer switches
 back to the index.html page. -> Done 11/10/23
 
-4. Improve perfomance by reducing the amount of on demand API requests by making them sooner and storing the data in a cache.
+4. Improve perfomance by reducing the amount of on demand API requests by making them sooner and storing the data in a cache. -> Done 11/11/23
 
 5. Improve Artist html page UI
 
 6. Integrate the RFID scanner and find a way to write the album URI to the chip instead of a sql database
+
+7. Add a homepage where the albums that are already scanned by the user and associated with RFID chips are presented, this data is stored in the SQL database 
+    and the homepage should be updated whenever the user clicks to view it.
+
+    Plan:
+        Homepage should be:
+            grid style, 3x3 with the albums taking up the majority of the space
+            a search bar atop with artist search feature
+            album image paths should be stored in the SQL database and are retrieved for display
+            

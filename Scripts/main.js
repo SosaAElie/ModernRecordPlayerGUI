@@ -103,7 +103,8 @@ function scan(event, args, mainWindow, mfrc522, client) {
 				if (rows.length < 1) addRfidUri(client, uid, args)
 				else updateRfidUri(client, uid, args)
 			})
-		scannerPopUp.close();
+		setTimeout(()=>scannerPopUp.close(), 2000); //Give the renderer enough time to change the image to a check mark once the chip has been scanned
+		
 
 		
 	}

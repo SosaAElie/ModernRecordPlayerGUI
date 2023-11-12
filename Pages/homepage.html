@@ -7,6 +7,17 @@
     </head>
     <body>
         <h1>Homepage</h1>
-        <script async defer></script>
+        <div id = "homepage-container">
+            <button id = "artist-page-switch">Switch to artist search page</button>
+            <!-- <form id = artist-search>
+                <label>Artist</label>
+                <input type="text" required>
+                <button>Search</button>
+            </form> -->
+            <div id ="scanned-albums"></div>
+        </div>
+        <script async defer>
+            document.getElementById("artist-page-switch").addEventListener("click", ()=>window.location = "artists.html")
+        </script>
     </body>
 </html>
