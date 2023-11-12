@@ -35,7 +35,7 @@ function mainProcess() {
 		height: 600,
 		webPreferences: {
 			contextIsolation: true,
-			preload: path.join(__dirname, 'preload.js')
+			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
 	
@@ -63,6 +63,7 @@ function scan(event, args, mainWindow, mfrc522) {
 		titleBarOverlay: true,
 		webPreferences: {
 			contextIsolation: true,
+			preload: path.join(__dirname, 'preload.js'),
 		},
 	})
 	scannerPopUp.loadFile("./Pages/popup.html");
