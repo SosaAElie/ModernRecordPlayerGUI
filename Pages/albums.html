@@ -155,6 +155,8 @@
 
         function renderAlbumInfo(){
             focusAlbum.firstChild.src = this.src;
+            focusAlbum.firstChild.uri = this.uri;
+            focusAlbum.firstChild.id = this.id;
             trackNames.innerHTML = "";
             window.electronAPI.getAlbumTracks(this.id)
                 .then(tracks=>{
@@ -171,7 +173,7 @@
         
         scanButton.addEventListener("click", event=>{
             event.preventDefault();
-            window.electronAPI.startScan(focusAlbum.id);
+            window.electronAPI.startScan(focusAlbum.firstChild.id);
         })
 
         
