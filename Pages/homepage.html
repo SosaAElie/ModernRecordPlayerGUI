@@ -18,7 +18,8 @@
             
             window.electronAPI.getDevices()
                 .then(devices =>{
-                    for(let [deviceName, deviceId] of devices.entries()){
+                    console.log(devices)
+                    for(let [deviceName, deviceId] of Object.entries(devices)){
                         const deviceOption = document.createElement("option");
                         deviceOption.val = deviceId;
                         deviceOption.textContent = deviceName;

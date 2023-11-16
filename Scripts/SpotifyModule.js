@@ -215,7 +215,7 @@ const tokenStorage = {
         });
         const headers = {
             "Content-Type":"application/x-www-form-urlencoded",
-		    "Authorization":`Basic ${btoa(`${this.clientId}:${this.clientSecret}`)}`
+		    "Authorization":`Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`
         };
         const requestType = {
             method:"POST",
@@ -240,7 +240,7 @@ const tokenStorage = {
         endpoint.searchParams.append("refresh_token",refreshToken);
         const headers = {
             "Content-Type":"application/x-www-form-urlencoded",
-		    "Authorization":`Basic ${btoa(`${this.clientId}:${this.clientSecret}`)}`,
+		    "Authorization":`Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
         }
         const requestType = {
             method:"POST",
