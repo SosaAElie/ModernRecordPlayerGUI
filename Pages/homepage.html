@@ -9,15 +9,22 @@
         <h1>Homepage</h1>
         <div id = "homepage-container">
             <button id = "artist-page-switch">Switch to artist search page</button>
-            <!-- <form id = artist-search>
-                <label>Artist</label>
-                <input type="text" required>
-                <button>Search</button>
-            </form> -->
+            <select id = "device-list"></select>
             <div id ="scanned-albums"></div>
         </div>
         <script async defer>
             document.getElementById("artist-page-switch").addEventListener("click", ()=>window.location = "artists.html")
+            const deviceList = document.getElementById("device-list");
+            
+            window.electronAPI.getDevices()
+                .then(devices =>{
+                    for(let [deviceName, deviceId] of devices.entries()){
+                        const deviceOption = document.createElement("option");
+                        deviceOption.val = deviceId;
+                        deviceOption.textContent = deviceName;
+                        deviceList.appendChild(deviceOption);
+                    }
+                })
         </script>
     </body>
 </html>

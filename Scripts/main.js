@@ -39,11 +39,12 @@ function mainProcess() {
 		},
 	});
 	
-	mainWindow.loadFile("./Pages/artists.html");
+	mainWindow.loadFile("./Pages/homepage.html");
 	// mainWindow.webContents.openDevTools()
 	let intervalId;
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
+	ipcMain.handle("search:devices", SpotifyWrapper.getAvailableDevices)
 	ipcMain.handle("scan", (event, args) => {
 		intervalId = scan(event, args, mainWindow, mfrc522, client)
 	})

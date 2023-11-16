@@ -325,6 +325,6 @@ module.exports = {
 
 SpotifyWrapper.getAvailableDevices()
     .then(devices =>{
-       
-        SpotifyWrapper.startPlayback(devices["Elie’s Mac mini"], "spotify:album:5lJqux7orBlA1QzyiBGti1")
+        console.log(devices)
+        SpotifyWrapper.startPlayback(devices["iPad"], "spotify:album:5lJqux7orBlA1QzyiBGti1")
     })
