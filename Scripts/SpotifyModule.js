@@ -323,8 +323,8 @@ module.exports = {
     SpotifyWrapper
 }
 
-SpotifyWrapper.getAvailableDevices()
-    .then(devices =>{
-        console.log(devices)
-        SpotifyWrapper.startPlayback(devices["iPad"], "spotify:album:5lJqux7orBlA1QzyiBGti1")
-    })
+// SpotifyWrapper.getAvailableDevices()
+//     .then(devices =>{
+//         console.log(devices)
+//         SpotifyWrapper.startPlayback(devices["iPad"], "spotify:album:5lJqux7orBlA1QzyiBGti1")
+//     })

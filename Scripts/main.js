@@ -14,21 +14,21 @@ function main() {
 }
 
 function mainProcess() {
-	// const softSPI = new SoftSPI({
-	// 	clock: 23, // pin number of SCLK
-	// 	mosi: 19, // pin number of MOSI
-	// 	miso: 21, // pin number of MISO
-	// 	client: 24 // pin number of CS
-	// });
-	// const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
+	const softSPI = new SoftSPI({
+		clock: 23, // pin number of SCLK
+		mosi: 19, // pin number of MOSI
+		miso: 21, // pin number of MISO
+		client: 24 // pin number of CS
+	});
+	const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
 
-	// const client = new pg.Client({
-	// 	host: "localhost",
-	// 	port: 5432,
-	// 	database: "storage",
-	// 	user: "easosa",
-	// })
-	// client.connect()
+	const client = new pg.Client({
+		host: "localhost",
+		port: 5432,
+		database: "storage",
+		user: "easosa",
+	})
+	client.connect()
 
 	const mainWindow = new BrowserWindow({
 		width: 800,
