@@ -46,7 +46,8 @@ function mainProcess() {
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
 	ipcMain.handle("search:devices", SpotifyWrapper.getAvailableDevices)
 	ipcMain.handle("scan", (event, args) => {
-		intervalId = scan(event, args, mainWindow, mfrc522, client)
+		intervalId = scan(event, args, mainWindow, null, null)
+		//intervalId = scan(event, args, mainWindow, mfrc522, client)
 	})
 	ipcMain.handle("cancel:scan", ()=>{
 		console.log("Cancelling scan");
@@ -57,6 +58,7 @@ function mainProcess() {
 
 function scan(event, args, mainWindow, mfrc522, client) {
 	let uid;
+	console.log(args)
 	const scannerPopUp = new BrowserWindow({
 		parent: mainWindow,
 		modal: true,
@@ -88,8 +90,6 @@ function scan(event, args, mainWindow, mfrc522, client) {
 
 
 	function scanningFunction(event, args, mainWindow, scannerPopUp, mfrc522, client) {
-		console.log("Scanning")
-		console.log(mfrc522)
 		mfrc522.reset();
 		
 		const chip = mfrc522.findCard();
@@ -97,14 +97,31 @@ function scan(event, args, mainWindow, mfrc522, client) {
 		
 		console.log("scanned chip")
 		clearInterval(intervalId);
-		mainWindow.webContents.send("handle:scan", true);
+		
 		uid = uidToNum(mfrc522.getUid().data)
 		isRfidUriPresent(client, uid)
 			.then(rows =>{
-				if (rows.length < 1) addRfidUri(client, uid, args)
-				else updateRfidUri(client, uid, args)
+				if(args.hasOwnProperty("rfid")){
+					if (rows.length < 1) addRfidUri(client, uid, args)
+					else updateRfidUri(client, uid, args)
+					mainWindow.webContents.send("handle:scan", true);
+				}
+				else if (args.hasOwnProperty("play")){
+					if (rows.length > 0){
+						const albumUri = rows[0];
+						const deviceId = args.play[1]
+						SpotifyWrapper.startPlayback(deviceId, albumUri);
+						mainWindow.webContents.send("handle:scan", true);
+					}
+					else{
+						console.log("No album associated with rfid chip");
+						mainWindow.webContents.send("handle:scan", false);
+					}
+				}
+
+				
 			})
-		setTimeout(()=>scannerPopUp.close(), 2000); //Give the renderer enough time to change the image to a check mark once the chip has been scanned
+		//setTimeout(()=>scannerPopUp.close(), 2000); //Give the renderer enough time to change the image to a check mark once the chip has been scanned
 	}
 	return intervalId;
 }

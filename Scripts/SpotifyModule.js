@@ -198,7 +198,7 @@ const tokenStorage = {
                 const access_token = data["access_token"];
                 const expiration_time = (data["expires_in"] * 1000) + Date.now();
                 const token_type = data["token_type"];
-                this.storeToken([access_token, expiration_time, token_type]);
+                this.storeToken([access_token, expiration_time, token_type], "accessToken");
                 return [access_token, expiration_time, token_type]
             })
 

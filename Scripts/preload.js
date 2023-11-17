@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	sendArtistID:artistId=>ipcRenderer.invoke("search:album", artistId),
 	getAlbumTracks:albumId=>ipcRenderer.invoke("album:tracks", albumId),
 	getDevices:()=>ipcRenderer.invoke("search:devices"),
-	startScan:spotifyURI=>ipcRenderer.invoke("scan", spotifyURI),
+	startScan:spotifyValueObject=>ipcRenderer.invoke("scan", spotifyValueObject),
 	cancelScan:()=>ipcRenderer.invoke("cancel:scan"),
 	handleAlbums:cb=>ipcRenderer.on('albums:data', cb),
 	handleArtists:cb=>ipcRenderer.on("artists:data", cb),

@@ -35,6 +35,7 @@
 	</style>
 </head>
 <body>
+	<button id = "homepage-button">Click me to go to homepage</button>
 	<form id = "search-form"> 
 		<label>Artist Name</label>
 		<input type = "text" required>	
@@ -115,7 +116,7 @@
 			window.electronAPI.scan(this.id)
 			//console.log(this.id)
 		}
-		
+		document.getElementById("homepage-button").addEventListener("click", ()=>window.location = "homepage.html")
 	</script>
 </body>
 </html>

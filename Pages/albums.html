@@ -81,12 +81,14 @@
 </head>
 
 <body>
+    <button id = "homepage-button">Click me to go to homepage</button>
     <div id=album-body>
         <form id="artist-search">
             <label>Artist</label>
             <input type="text"  id = "search"required>
             <button id = "button">Search</button>
         </form>
+        
         <div id="album-image"></div>
         <div id="album-description">
             <h2>Album Description</h2>
@@ -173,9 +175,9 @@
         
         scanButton.addEventListener("click", event=>{
             event.preventDefault();
-            window.electronAPI.startScan(focusAlbum.firstChild.uri);
+            window.electronAPI.startScan({rfid:[focusAlbum.firstChild.uri]});
         })
-
+        document.getElementById("homepage-button").addEventListener("click", ()=>window.location = "homepage.html")
         
 
     </script>
