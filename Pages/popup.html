@@ -41,19 +41,22 @@
         <script async defer>
             const closeButton = document.getElementById("close");
             const image = document.getElementById("image");
+
             closeButton.addEventListener("click", ()=>{
                 window.electronAPI.cancelScan();
                 this.close();
-            })
+            });
+            
             window.electronAPI.handleScan((event, success)=>{
+                
                 if(success){
                     image.src = "../Images/successScan.png";
                 }
                 else{
-                    img.src = "../Images/error.png"
+                    image.src = "../Images/error.png"
                 }
                 setTimeout(window.close, 4000);
-            })
+            });
         </script>
     </body>
 </html>

@@ -51,7 +51,7 @@
 		searchForm.addEventListener("submit", (event)=>{
 			event.preventDefault();
 			const artist = event.target[0].value;
-			console.log(artist)
+			//console.log(artist)
 			window.electronAPI.sendArtist(artist).then(res=>{
 
 				renderArtists(res);

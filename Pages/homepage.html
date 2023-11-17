@@ -21,7 +21,7 @@
             const submitDeviceForm = document.getElementById("submit-device-form");
             window.electronAPI.getDevices()
                 .then(devices =>{
-                    console.log(devices)
+                    //console.log(devices)
                     for(let [deviceName, deviceId] of Object.entries(devices)){
                         const deviceOption = document.createElement("option");
                         deviceOption.value = deviceId;

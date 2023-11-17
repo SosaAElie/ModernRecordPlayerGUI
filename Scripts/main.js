@@ -1,6 +1,6 @@
 "use strict";
-// const Mfrc522 = require("mfrc522-rpi");
-// const SoftSPI = require("rpi-softspi");
+const Mfrc522 = require("mfrc522-rpi");
+const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const pg = require("pg")
@@ -40,7 +40,7 @@ function mainProcess() {
 	});
 	
 	mainWindow.loadFile("./Pages/homepage.html");
-	//mainWindow.webContents.openDevTools()
+	// mainWindow.webContents.openDevTools()
 	let intervalId;
 	ipcMain.handle("search:artist", (event, args)=>SpotifyWrapper.getArtist(event, args, mainWindow))
 	ipcMain.handle("search:album", (event, args) => SpotifyWrapper.getArtistAlbums(event, args, mainWindow))
@@ -108,13 +108,13 @@ function scan(event, args, mainWindow, mfrc522, client) {
 				else if (args.hasOwnProperty("play")){
 					if (rows.length > 0){
 						const albumUri = rows[0];
-						const deviceId = args.play[1]
+						const deviceId = args.play[1].uri;
 						SpotifyWrapper.startPlayback(deviceId, albumUri);
-						mainWindow.webContents.send("handle:scan", true);
+						scannerPopUp.webContents.send("handle:scan", true);
 					}
 					else{
 						console.log("No album associated with rfid chip");
-						mainWindow.webContents.send("handle:scan", false);
+						scannerPopUp.webContents.send("handle:scan", false);
 					}
 				}
 
@@ -128,7 +128,7 @@ function scan(event, args, mainWindow, mfrc522, client) {
 //Functions used to interact with the postgreSQL database
 
 function isRfidUriPresent(client, id) {
-	return client.query(`SELECT id FROM rfiduri WHERE id = '${id}'`)
+	return client.query(`SELECT uri FROM rfiduri WHERE id = '${id}'`)
 		.then(res => res.rows)
 }
 
