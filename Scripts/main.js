@@ -1,6 +1,6 @@
 "use strict";
-// const Mfrc522 = require("mfrc522-rpi");
-// const SoftSPI = require("rpi-softspi");
+const Mfrc522 = require("mfrc522-rpi");
+const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const pg = require("pg")
@@ -13,21 +13,21 @@ function main() {
 }
 
 function mainProcess() {
-	// const softSPI = new SoftSPI({
-	// 	clock: 23, // pin number of SCLK
-	// 	mosi: 19, // pin number of MOSI
-	// 	miso: 21, // pin number of MISO
-	// 	client: 24 // pin number of CS
-	// });
-	// const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
+	const softSPI = new SoftSPI({
+		clock: 23, // pin number of SCLK
+		mosi: 19, // pin number of MOSI
+		miso: 21, // pin number of MISO
+		client: 24 // pin number of CS
+	});
+	const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
 
-	// const client = new pg.Client({
-	// 	host: "localhost",
-	// 	port: 5432,
-	// 	database: "storage",
-	// 	user: "easosa",
-	// })
-	// client.connect()
+	const client = new pg.Client({
+		host: "localhost",
+		port: 5432,
+		database: "storage",
+		user: "easosa",
+	})
+	client.connect()
 
 	const mainWindow = new BrowserWindow({
 		width: 800,
@@ -106,8 +106,8 @@ function scan(event, args, mainWindow, mfrc522, client) {
 				}
 				else if (args.hasOwnProperty("play")){
 					if (rows.length > 0){
-						const albumUri = rows[0];
-						const deviceId = args.play[1].uri;
+						const albumUri = rows[0].uri;
+						const deviceId = args.play[1];
 						SpotifyWrapper.startPlayback(deviceId, albumUri);
 						scannerPopUp.webContents.send("handle:scan", true);
 					}
