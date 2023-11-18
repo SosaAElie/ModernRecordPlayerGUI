@@ -1,12 +1,11 @@
 "use strict";
-const Mfrc522 = require("mfrc522-rpi");
-const SoftSPI = require("rpi-softspi");
+// const Mfrc522 = require("mfrc522-rpi");
+// const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
 const pg = require("pg")
 const {SpotifyWrapper} = require("../Scripts/SpotifyModule");
 const { clearInterval } = require("timers");
-
 
 function main() {
 
@@ -14,21 +13,21 @@ function main() {
 }
 
 function mainProcess() {
-	const softSPI = new SoftSPI({
-		clock: 23, // pin number of SCLK
-		mosi: 19, // pin number of MOSI
-		miso: 21, // pin number of MISO
-		client: 24 // pin number of CS
-	});
-	const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
+	// const softSPI = new SoftSPI({
+	// 	clock: 23, // pin number of SCLK
+	// 	mosi: 19, // pin number of MOSI
+	// 	miso: 21, // pin number of MISO
+	// 	client: 24 // pin number of CS
+	// });
+	// const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
 
-	const client = new pg.Client({
-		host: "localhost",
-		port: 5432,
-		database: "storage",
-		user: "easosa",
-	})
-	client.connect()
+	// const client = new pg.Client({
+	// 	host: "localhost",
+	// 	port: 5432,
+	// 	database: "storage",
+	// 	user: "easosa",
+	// })
+	// client.connect()
 
 	const mainWindow = new BrowserWindow({
 		width: 800,
@@ -101,9 +100,9 @@ function scan(event, args, mainWindow, mfrc522, client) {
 		isRfidUriPresent(client, uid)
 			.then(rows =>{
 				if(args.hasOwnProperty("rfid")){
-					if (rows.length < 1) addRfidUri(client, uid, args)
-					else updateRfidUri(client, uid, args)
-					mainWindow.webContents.send("handle:scan", true);
+					if (rows.length < 1) addRfidUri(client, uid, args.rfid[0])
+					else updateRfidUri(client, uid, args.rfid[0])
+					scannerPopUp.webContents.send("handle:scan", true);
 				}
 				else if (args.hasOwnProperty("play")){
 					if (rows.length > 0){
@@ -120,7 +119,6 @@ function scan(event, args, mainWindow, mfrc522, client) {
 
 				
 			})
-		//setTimeout(()=>scannerPopUp.close(), 2000); //Give the renderer enough time to change the image to a check mark once the chip has been scanned
 	}
 	return intervalId;
 }
@@ -132,16 +130,17 @@ function isRfidUriPresent(client, id) {
 		.then(res => res.rows)
 }
 
-function addRfidUri(client, id, uri) {
+function addRfidUri(client, id, uriObject) {
 	//Adds an entry for the rfid if there is no entry present
 	console.log("rfid of chip is not within table, adding it along with the desired spotify album uri")
-	client.query(`INSERT INTO rfiduri VALUES ('${id.toString()}', '${uri}')`)
+
+	client.query(`INSERT INTO rfiduri VALUES ('${id.toString()}', '${uriObject.rfid}')`)
 }
 
-function updateRfidUri(client, id, uri) {
+function updateRfidUri(client, id, uriObject) {
 	//If there is an entry present in the sql database will overwrite the entry with the new spotify album uri
 	console.log("Updating the associated spotify uri of the rfid chip")
-	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uri}' WHERE id = '${id}'`)
+	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uriObject.rfid}' WHERE id = '${id}'`)
 }
 
 function uidToNum(uid) {

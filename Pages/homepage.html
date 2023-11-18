@@ -4,6 +4,18 @@
         <meta charset="utf-8">
         <title>Homepage</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body{
+                background-color: peachpuff;
+            }
+            #homepage-container{
+                display: flex;
+                gap: 10%;
+            }
+            h1{
+                text-align: center;
+            }
+        </style>
     </head>
     <body>
         <h1>Homepage</h1>
@@ -15,7 +27,7 @@
             </form>
         </div>
         <div id ="scanned-albums"></div>
-        <script async defer>
+        <script async defer> 
             document.getElementById("artist-page-switch").addEventListener("click", ()=>window.location = "artists.html")
             const deviceList = document.getElementById("device-list");
             const submitDeviceForm = document.getElementById("submit-device-form");
