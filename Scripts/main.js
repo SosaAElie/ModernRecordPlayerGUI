@@ -56,7 +56,6 @@ function mainProcess() {
 }
 
 function scan(event, args, mainWindow, mfrc522, client) {
-	let uidObject;
 	const scannerPopUp = new BrowserWindow({
 		parent: mainWindow,
 		modal: true,
@@ -95,7 +94,7 @@ function scan(event, args, mainWindow, mfrc522, client) {
 		
 		console.log("scanned chip")
 		clearInterval(intervalId);
-		uidObject = mfrc522.getUid();
+		let uidObject = mfrc522.getUid();
 		let uid = uidObject.data;
 		if(!uidObject.status){
 			console.log("Error getting the ID of the rfid chip");
@@ -201,7 +200,7 @@ function writeToRfidChip(str, uid, mfrc522){
 		//console.log("Old data: " + oldBlock8Data);
 		//console.log(`Now Block ${i} looks like this:`,newBlock8Data);
 	}
-	let writtenStr = String.fromCharCode(...recoveredDecimalArray);
+	let writtenStr = String.fromCharCode(...writtenData);
 	mfrc522.stopCrypto();
 	
 	if(str == writtenStr) console.log("The string was successfully written.")
@@ -211,18 +210,17 @@ function writeToRfidChip(str, uid, mfrc522){
 
 function readRfidChip(uid, mfrc522, start = 8, sectorsToRead = 3){
 	//Starts reading from sector 8 and uses utf-8 encoding to produce the string stored the number of sectors specified
-	const key = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
+	const KEY = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
 	const storedData = [];
-	for(let sector = start; sector < sector+sectorsToRead; sector++){ 
-		if (!mfrc522.authenticate(sector, key, uid)) {
-			console.log(sector, key, uid);
+	for(let sector = start; sector<start+sectorsToRead; sector++){ 
+		if (!mfrc522.authenticate(sector, KEY, uid)) {
 			console.log("RFID Chip Authentication Error");
 			return;
 		}
 		let blockData = mfrc522.getDataForBlock(sector);
 		blockData.forEach(c=>c!=0?storedData.push(c):c);//If the hexadecimal value in the array is 0, then it is pressumed to be the default stored value
 	}
-	mfrc522.stopCrypto();
+	//mfrc522.stopCrypto(); Using this method prevents further accessing of sectors on this card unless the card is selected again
 	if (!storedData.length) return ""
 	return String.fromCharCode(...storedData);
 }
