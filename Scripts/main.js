@@ -95,30 +95,54 @@ function scan(event, args, mainWindow, mfrc522, client) {
 		
 		console.log("scanned chip")
 		clearInterval(intervalId);
+		uid = mfrc522.getUid();
+		if(!uid.status){
+			console.log("Error getting the ID of the rfid chip");
+			return;
+		}
+		const storedAlbumUri = readRfidChip(uid, mfrc522);
+		if(args.hasOwnProperty("rfid")){
+			if(storedAlbumUri) console.log("Overwriting the stored album");
+			else console.log("Writing album to clean rfid chip")
+			let albumUri = args.rfid[0];
+			writeToRfidChip(albumUri, uid, mfrc522);
+			scannerPopUp.webContents.send("handle:scan", true)
+		}
+		else if (args.hasOwnProperty("play")){
+			if(!storedAlbumUri){
+				console.log("No album stored in the rfid chip");
+				scannerPopUp.webContents.send("handle:scan", false);
+				return;
+			}
+			const deviceId = args.play[1];
+			SpotifyWrapper.startPlayback(deviceId, storedAlbumUri);
+			scannerPopUp.webContents.send("handle:scan", true)
+		}
+
 		
-		uid = uidToNum(mfrc522.getUid().data)
-		isRfidUriPresent(client, uid)
-			.then(rows =>{
-				if(args.hasOwnProperty("rfid")){
-					if (rows.length < 1) addRfidUri(client, uid, args.rfid[0])
-					else updateRfidUri(client, uid, args.rfid[0])
-					scannerPopUp.webContents.send("handle:scan", true);
-				}
-				else if (args.hasOwnProperty("play")){
-					if (rows.length > 0){
-						const albumUri = rows[0].uri;
-						const deviceId = args.play[1];
-						SpotifyWrapper.startPlayback(deviceId, albumUri);
-						scannerPopUp.webContents.send("handle:scan", true);
-					}
-					else{
-						console.log("No album associated with rfid chip");
-						scannerPopUp.webContents.send("handle:scan", false);
-					}
-				}
+		// uid = uidToNum(mfrc522.getUid().data)
+		// isRfidUriPresent(client, uid)
+		// 	.then(rows =>{
+		// 		if(args.hasOwnProperty("rfid")){
+		// 			if (rows.length < 1) addRfidUri(client, uid, args)
+		// 			else updateRfidUri(client, uid, args)
+		// 			scannerPopUp.webContents.send("handle:scan", true);
+		// 		}
+		// 		else if (args.hasOwnProperty("play")){
+		// 			if (rows.length > 0){
+		// 				const albumUri = rows[0].uri;
+		// 				const deviceId = args.play[1];
+		// 				SpotifyWrapper.startPlayback(deviceId, albumUri);
+		// 				scannerPopUp.webContents.send("handle:scan", true);
+		// 			}
+		// 			else{
+		// 				console.log("No album associated with rfid chip");
+		// 				scannerPopUp.webContents.send("handle:scan", false);
+		// 			}
+		// 		}
 
 				
-			})
+		// 	})
 	}
 	return intervalId;
 }
@@ -134,13 +158,13 @@ function addRfidUri(client, id, uriObject) {
 	//Adds an entry for the rfid if there is no entry present
 	console.log("rfid of chip is not within table, adding it along with the desired spotify album uri")
 
-	client.query(`INSERT INTO rfiduri VALUES ('${id.toString()}', '${uriObject.rfid}')`)
+	client.query(`INSERT INTO rfiduri VALUES ('${id.toString()}', '${uriObject.rfid[0]}')`)
 }
 
 function updateRfidUri(client, id, uriObject) {
 	//If there is an entry present in the sql database will overwrite the entry with the new spotify album uri
 	console.log("Updating the associated spotify uri of the rfid chip")
-	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uriObject.rfid}' WHERE id = '${id}'`)
+	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uriObject.rfid[0]}' WHERE id = '${id}'`)
 }
 
 function uidToNum(uid) {
@@ -153,5 +177,69 @@ function uidToNum(uid) {
 }
 
 //End of functions used to interact with the postgreSQL database
+
+//Functions used to write spotify album uri to rfid chip
+
+function writeToRfidChip(str, uid, mfrc522){
+	const charBuffers = strToAsciiArrays(str, 16);//Each sector can hold 16 hex values
+	mfrc522.selectCard(uid); //Returns memory capacity as a number
+	const KEY = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
+	const startBlock = 8;//Start writing at sector 8 according to the mfrc522-rpi nodejs library
+	const writtenData = [];
+	for(let sector = startBlock; sector < sector+charBuffers.length; sector++){ 
+		if (!mfrc522.authenticate(sector, KEY, uid)) {
+			console.log("RFID Chip Authentication Error");
+			return;
+		} 
+	  	let charBuffer = charBuffers[sector-startBlock];
+		console.log(`Block ${sector} will be overwritten.`);
+		mfrc522.writeDataToBlock(sector, charBuffer);
+	  	let storedData = mfrc522.getDataForBlock(sector);
+		storedData.forEach(c=>c!=0?writtenData.push(c):c); //If the hexadecimal value in the array is 0, then it is pressumed to be the default stored value
+		//const oldBlock8Data = mfrc522.getDataForBlock(sector);
+		//console.log("Old data: " + oldBlock8Data);
+		//console.log(`Now Block ${i} looks like this:`,newBlock8Data);
+	}
+	let writtenStr = String.fromCharCode(...recoveredDecimalArray);
+	mfrc522.stopCrypto();
+	
+	if(str == writtenStr) console.log("The string was successfully written.")
+	else console.log("Error the str written to rfid chip is not the same as the str passed in.");
+	 
+}
+
+function readRfidChip(uid, mfrc522, start = 8, sectorsToRead = 3){
+	//Starts reading from sector 8 and uses utf-8 encoding to produce the string stored the number of sectors specified
+	const KEY = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
+	const storedData = [];
+	for(let sector = start; sector < sector+sectorsToRead; sector++){ 
+		if (!mfrc522.authenticate(sector, KEY, uid)) {
+			console.log("RFID Chip Authentication Error");
+			return;
+		}
+		let blockData = mfrc522.getDataForBlock(sector);
+		blockData.forEach(c=>c!=0?storedData.push(c):c);//If the hexadecimal value in the array is 0, then it is pressumed to be the default stored value
+	}
+	mfrc522.stopCrypto();
+	if (!storedData.length) return ""
+	return String.fromCharCode(...storedData);
+}
+  
+function strToAsciiArrays(str, arraySize){
+	const charBuffer = [];
+	const charBuffers = [];
+	for(let i = 0; i < str.length; i++){
+	  if(charBuffer.length === arraySize){
+		charBuffers.push(charBuffer.map(c=>c))
+		charBuffer.length = 0;
+	  }
+	  charBuffer.push(str.charCodeAt(i));
+	};
+	if(charBuffer.length !== 0) charBuffers.push(charBuffer.map(c=>c)); 
+	return charBuffers;
+}
+  
+
+
 
 main()
