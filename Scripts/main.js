@@ -56,7 +56,7 @@ function mainProcess() {
 }
 
 function scan(event, args, mainWindow, mfrc522, client) {
-	let uid;
+	let uidObject;
 	const scannerPopUp = new BrowserWindow({
 		parent: mainWindow,
 		modal: true,
@@ -95,17 +95,19 @@ function scan(event, args, mainWindow, mfrc522, client) {
 		
 		console.log("scanned chip")
 		clearInterval(intervalId);
-		uid = mfrc522.getUid();
-		if(!uid.status){
+		uidObject = mfrc522.getUid();
+		let uid = uidObject.data;
+		if(!uidObject.status){
 			console.log("Error getting the ID of the rfid chip");
 			return;
 		}
+		mfrc522.selectCard(uid); //Returns memory capacity as a number
 		const storedAlbumUri = readRfidChip(uid, mfrc522);
 		if(args.hasOwnProperty("rfid")){
 			if(storedAlbumUri) console.log("Overwriting the stored album");
 			else console.log("Writing album to clean rfid chip")
 			let albumUri = args.rfid[0];
-			writeToRfidChip(albumUri, uid, mfrc522);
+			writeToRfidChip(albumUri, uidObject.data, mfrc522);
 			scannerPopUp.webContents.send("handle:scan", true)
 		}
 		else if (args.hasOwnProperty("play")){
@@ -182,7 +184,6 @@ function uidToNum(uid) {
 
 function writeToRfidChip(str, uid, mfrc522){
 	const charBuffers = strToAsciiArrays(str, 16);//Each sector can hold 16 hex values
-	mfrc522.selectCard(uid); //Returns memory capacity as a number
 	const KEY = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
 	const startBlock = 8;//Start writing at sector 8 according to the mfrc522-rpi nodejs library
 	const writtenData = [];
@@ -210,10 +211,11 @@ function writeToRfidChip(str, uid, mfrc522){
 
 function readRfidChip(uid, mfrc522, start = 8, sectorsToRead = 3){
 	//Starts reading from sector 8 and uses utf-8 encoding to produce the string stored the number of sectors specified
-	const KEY = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
+	const key = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];//Standard key to access read/write sectors on rfid chip
 	const storedData = [];
 	for(let sector = start; sector < sector+sectorsToRead; sector++){ 
-		if (!mfrc522.authenticate(sector, KEY, uid)) {
+		if (!mfrc522.authenticate(sector, key, uid)) {
+			console.log(sector, key, uid);
 			console.log("RFID Chip Authentication Error");
 			return;
 		}
