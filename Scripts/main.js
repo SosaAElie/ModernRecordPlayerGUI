@@ -3,7 +3,6 @@ const Mfrc522 = require("mfrc522-rpi");
 const SoftSPI = require("rpi-softspi");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path")
-const pg = require("pg")
 const {SpotifyWrapper} = require("../Scripts/SpotifyModule");
 const { clearInterval } = require("timers");
 
@@ -20,14 +19,6 @@ function mainProcess() {
 		client: 24 // pin number of CS
 	});
 	const mfrc522 = new Mfrc522(softSPI).setResetPin(22)
-
-	const client = new pg.Client({
-		host: "localhost",
-		port: 5432,
-		database: "storage",
-		user: "easosa",
-	})
-	client.connect()
 
 	const mainWindow = new BrowserWindow({
 		width: 800,
@@ -120,64 +111,9 @@ function scan(event, args, mainWindow, mfrc522, client) {
 			scannerPopUp.webContents.send("handle:scan", true)
 		}
 
-		
-		// uid = uidToNum(mfrc522.getUid().data)
-		// isRfidUriPresent(client, uid)
-		// 	.then(rows =>{
-		// 		if(args.hasOwnProperty("rfid")){
-		// 			if (rows.length < 1) addRfidUri(client, uid, args)
-		// 			else updateRfidUri(client, uid, args)
-		// 			scannerPopUp.webContents.send("handle:scan", true);
-		// 		}
-		// 		else if (args.hasOwnProperty("play")){
-		// 			if (rows.length > 0){
-		// 				const albumUri = rows[0].uri;
-		// 				const deviceId = args.play[1];
-		// 				SpotifyWrapper.startPlayback(deviceId, albumUri);
-		// 				scannerPopUp.webContents.send("handle:scan", true);
-		// 			}
-		// 			else{
-		// 				console.log("No album associated with rfid chip");
-		// 				scannerPopUp.webContents.send("handle:scan", false);
-		// 			}
-		// 		}
-
-				
-		// 	})
 	}
 	return intervalId;
 }
-
-//Functions used to interact with the postgreSQL database
-
-function isRfidUriPresent(client, id) {
-	return client.query(`SELECT uri FROM rfiduri WHERE id = '${id}'`)
-		.then(res => res.rows)
-}
-
-function addRfidUri(client, id, uriObject) {
-	//Adds an entry for the rfid if there is no entry present
-	console.log("rfid of chip is not within table, adding it along with the desired spotify album uri")
-
-	client.query(`INSERT INTO rfiduri VALUES ('${id.toString()}', '${uriObject.rfid[0]}')`)
-}
-
-function updateRfidUri(client, id, uriObject) {
-	//If there is an entry present in the sql database will overwrite the entry with the new spotify album uri
-	console.log("Updating the associated spotify uri of the rfid chip")
-	client.query(`UPDATE rfiduri SET id = '${id}', uri = '${uriObject.rfid[0]}' WHERE id = '${id}'`)
-}
-
-function uidToNum(uid) {
-	//Same uid 5 byte conversion as MFRC522 library for python
-	let n = 0;
-	for (let i = 0; i < 5; i++) {
-		n = n * 256 + uid[i]
-	}
-	return n
-}
-
-//End of functions used to interact with the postgreSQL database
 
 //Functions used to write spotify album uri to rfid chip
 
